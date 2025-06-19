@@ -1,54 +1,54 @@
-require('dotenv').config(); // ⬅️ Tambahkan ini di baris paling atas
+// server.js
+require('dotenv').config(); // ⬅️ Load .env di awal
 
 const express = require('express');
 const cors = require('cors');
 const app = express();
+
+// Gunakan PORT dari .env atau default 5000
 const port = process.env.PORT || 5000;
 
-// ✅ Allowed origins termasuk Vercel & ngrok
+// ✅ Daftar asal yang diizinkan untuk CORS
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  process.env.NGROK_URL,
+  'https://7865-36-83-222-191.ngrok-free.app', // Ganti saat ngrok berubah,
 ];
 
-// ✅ CORS middleware
+// Tambahkan ngrok URL jika tersedia di .env
+if (process.env.NGROK_URL) {
+  allowedOrigins.push(process.env.NGROK_URL);
+}
+
+// ✅ Middleware CORS
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('❌ Not allowed by CORS: ' + origin));
+      callback(new Error('❌ Tidak diizinkan oleh CORS: ' + origin));
     }
   },
   credentials: true,
 }));
 
-// ✅ Middleware
+// ✅ Middleware JSON body
 app.use(express.json());
 
-// ✅ Import Routes
-const pemeriksaanRoutes = require('./routes/pemeriksaan');
-const faskesRoutes = require('./routes/faskes');
-const penggunaRoutes = require('./routes/pengguna');
-const userRoutes = require('./routes/users');
-const pasienRoutes = require('./routes/pasien');
-const feedbackRoutes = require('./routes/feedback');
+// ✅ Routes
+app.use('/api/pemeriksaan', require('./routes/pemeriksaan'));
+app.use('/api/faskes', require('./routes/faskes'));
+app.use('/api/pengguna', require('./routes/pengguna'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/pasien', require('./routes/pasien'));
+app.use('/api/feedback', require('./routes/feedback'));
 
-// ✅ Gunakan Routes
-app.use('/api/pemeriksaan', pemeriksaanRoutes);
-app.use('/api/faskes', faskesRoutes);
-app.use('/api/pengguna', penggunaRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/pasien', pasienRoutes);
-app.use('/api/feedback', feedbackRoutes);
-
-// ✅ Root endpoint
+// ✅ Default test endpoint
 app.get('/', (req, res) => {
   res.send('🩺 Mental Health API berjalan!');
 });
 
-// ✅ Jalankan Server
+// ✅ Start server
 app.listen(port, () => {
   console.log(`🚀 Server berjalan di http://localhost:${port}`);
 });
