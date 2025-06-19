@@ -1,0 +1,50 @@
+// routes/login.js
+const express = require('express');
+const bcrypt = require('bcrypt');
+const db = require('../db');
+const router = express.Router();
+
+// 🔐 POST /api/login
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username dan password wajib diisi' });
+  }
+
+  try {
+    const [results] = await db.query(
+      `SELECT u.*, p.nama_lengkap 
+       FROM users u 
+       JOIN pengguna p ON u.pengguna_id = p.id 
+       WHERE u.username = ?`,
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res.status(401).json({ message: '❌ Username tidak ditemukan' });
+    }
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: '❌ Password salah' });
+    }
+
+    res.json({
+      message: '✅ Login berhasil',
+      user: {
+        id: user.pengguna_id,
+        nama_lengkap: user.nama_lengkap,
+        username: user.username,
+        role: user.role,
+      }
+    });
+
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Terjadi kesalahan pada server' });
+  }
+});
+
+module.exports = router;
