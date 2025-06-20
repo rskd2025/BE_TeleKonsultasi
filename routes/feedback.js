@@ -21,13 +21,13 @@ router.get('/', async (req, res) => {
       JOIN pasien p ON f.pasien_id = p.id
       LEFT JOIN faskes fk ON p.faskes_id = fk.id
       LEFT JOIN (
-        SELECT 
-          pasien_id,
-          MAX(tanggal) as latest,
-          SUBSTRING_INDEX(GROUP_CONCAT(diagnosa ORDER BY tanggal DESC), ',', 1) as diagnosa,
-          SUBSTRING_INDEX(GROUP_CONCAT(anamnesis ORDER BY tanggal DESC), ',', 1) as anamnesis
-        FROM pemeriksaan
-        GROUP BY pasien_id
+        SELECT a.*
+        FROM pemeriksaan a
+        INNER JOIN (
+          SELECT pasien_id, MAX(tanggal) AS latest
+          FROM pemeriksaan
+          GROUP BY pasien_id
+        ) b ON a.pasien_id = b.pasien_id AND a.tanggal = b.latest
       ) pr ON pr.pasien_id = f.pasien_id
       ORDER BY f.tanggal DESC
     `);
