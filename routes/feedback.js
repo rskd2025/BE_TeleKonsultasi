@@ -1,3 +1,4 @@
+// routes/feedback.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -20,11 +21,14 @@ router.get('/', async (req, res) => {
       JOIN pasien p ON f.pasien_id = p.id
       LEFT JOIN faskes fk ON p.faskes_id = fk.id
       LEFT JOIN (
-        SELECT pasien_id, diagnosa, anamnesis
+        SELECT 
+          pasien_id,
+          MAX(tanggal) as latest,
+          SUBSTRING_INDEX(GROUP_CONCAT(diagnosa ORDER BY tanggal DESC), ',', 1) as diagnosa,
+          SUBSTRING_INDEX(GROUP_CONCAT(anamnesis ORDER BY tanggal DESC), ',', 1) as anamnesis
         FROM pemeriksaan
-        ORDER BY tanggal DESC
+        GROUP BY pasien_id
       ) pr ON pr.pasien_id = f.pasien_id
-      GROUP BY f.id
       ORDER BY f.tanggal DESC
     `);
     res.json(rows);
