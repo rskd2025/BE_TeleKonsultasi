@@ -121,25 +121,37 @@ router.get('/riwayat/:pasienId', async (req, res) => {
   }
 });
 
-// ✅ GET: Daftar kunjungan (status = 'menunggu')
+// ✅ GET: Daftar kunjungan (status = 'menunggu'), disaring berdasarkan role
 router.get('/kunjungan', async (req, res) => {
+  const role = req.query.role?.toLowerCase();
+
+  let query = `
+    SELECT 
+      p.id,
+      p.pasien_id,
+      p.tanggal,
+      p.faskes_asal,
+      p.tujuan_konsul,
+      p.status,
+      ps.nama_lengkap,
+      ps.jenis_kelamin,
+      TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
+    FROM pemeriksaan p
+    JOIN pasien ps ON p.pasien_id = ps.id
+    WHERE p.status = 'menunggu'
+  `;
+
+  const params = [];
+
+  if (role && !['admin', 'superadmin', 'administrator'].includes(role)) {
+    query += ' AND LOWER(p.tujuan_konsul) = ?';
+    params.push(role);
+  }
+
+  query += ' ORDER BY p.tanggal ASC';
+
   try {
-    const [rows] = await db.query(`
-      SELECT 
-        p.id,
-        p.pasien_id,
-        p.tanggal,
-        p.faskes_asal,
-        p.tujuan_konsul,
-        p.status,
-        ps.nama_lengkap,
-        ps.jenis_kelamin,
-        TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
-      FROM pemeriksaan p
-      JOIN pasien ps ON p.pasien_id = ps.id
-      WHERE p.status = 'menunggu'
-      ORDER BY p.tanggal ASC
-    `);
+    const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mengambil data kunjungan:', err);
