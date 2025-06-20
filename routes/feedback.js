@@ -2,24 +2,25 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// ✅ GET semua feedback konsul, termasuk data pasien dan peran user
+// ✅ GET semua feedback konsul lengkap
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
         f.id,
-        f.pasien_id,
-        f.feedback,
-        f.tanggal,
         p.nama_lengkap,
-        p.jenis_kelamin,
         TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
-        p.role AS peran_pengguna,
-        pr.diagnosa
+        fk.nama_faskes AS faskes_asal,
+        f.tujuan_konsul,
+        f.tanggal,
+        pr.diagnosa,
+        pr.anamnesis,
+        f.jawaban_konsul
       FROM feedback f
       JOIN pasien p ON f.pasien_id = p.id
+      LEFT JOIN faskes fk ON p.faskes_id = fk.id
       LEFT JOIN (
-        SELECT pasien_id, diagnosa
+        SELECT pasien_id, diagnosa, anamnesis
         FROM pemeriksaan
         ORDER BY tanggal DESC
       ) pr ON pr.pasien_id = f.pasien_id
@@ -35,15 +36,17 @@ router.get('/', async (req, res) => {
 
 // ✅ POST feedback baru
 router.post('/', async (req, res) => {
-  const { pasien_id, feedback, tanggal } = req.body;
-  if (!pasien_id || !feedback || !tanggal) {
-    return res.status(400).json({ error: 'Semua field wajib diisi' });
+  const { pasien_id, tanggal, tujuan_konsul, jawaban_konsul } = req.body;
+
+  if (!pasien_id || !tanggal || !tujuan_konsul) {
+    return res.status(400).json({ error: 'Field wajib tidak boleh kosong' });
   }
 
   try {
     const [result] = await db.query(
-      'INSERT INTO feedback (pasien_id, feedback, tanggal) VALUES (?, ?, ?)',
-      [pasien_id, feedback, tanggal]
+      `INSERT INTO feedback (pasien_id, tanggal, tujuan_konsul, jawaban_konsul)
+       VALUES (?, ?, ?, ?)`,
+      [pasien_id, tanggal, tujuan_konsul, jawaban_konsul || null]
     );
     res.status(201).json({ message: '✅ Feedback berhasil ditambahkan', id: result.insertId });
   } catch (err) {

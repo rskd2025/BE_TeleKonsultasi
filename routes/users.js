@@ -59,6 +59,59 @@ router.post('/login', async (req, res) => {
 });
 
 // ==========================================
+// ✅ SIGNUP (DARI MODAL FRONTEND)
+// ==========================================
+router.post('/signup', async (req, res) => {
+  const {
+    nama_lengkap,
+    nip,
+    tempat_lahir,
+    tanggal_lahir,
+    jenis_kelamin,
+    agama,
+    username,
+    password,
+  } = req.body;
+
+  try {
+    const [existing] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+    if (existing.length > 0) {
+      return res.status(400).json({ message: 'Username sudah digunakan' });
+    }
+
+    // Simpan ke tabel pengguna
+    const [result] = await db.query(
+      `INSERT INTO pengguna (nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, username, jenis_pengguna)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nama_lengkap,
+        nip,
+        tempat_lahir,
+        tanggal_lahir,
+        jenis_kelamin,
+        agama,
+        username,
+        'Eksternal',
+      ]
+    );
+
+    const pengguna_id = result.insertId;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Simpan ke tabel users
+    await db.query(
+      'INSERT INTO users (username, password, role, pengguna_id) VALUES (?, ?, ?, ?)',
+      [username, hashedPassword, 'petugas input', pengguna_id]
+    );
+
+    res.status(201).json({ message: 'Signup berhasil' });
+  } catch (err) {
+    console.error('Signup error:', err);
+    res.status(500).json({ message: 'Terjadi kesalahan pada server' });
+  }
+});
+
+// ==========================================
 // ✅ ATUR PASSWORD OLEH ADMIN
 // ==========================================
 router.put('/pengguna/:id/password', async (req, res) => {
