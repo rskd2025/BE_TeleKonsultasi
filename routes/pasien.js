@@ -1,3 +1,4 @@
+// routes/pasien.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -42,7 +43,7 @@ router.post('/', async (req, res) => {
     const [result] = await db.query(
       `INSERT INTO pasien (
         nama_lengkap, nik, no_rm, tanggal_lahir, jenis_kelamin,
-        alamat, no_hp, no_hp_pengantar
+        alamat, no_hp_pasien, no_hp_pengantar
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nama_lengkap,
