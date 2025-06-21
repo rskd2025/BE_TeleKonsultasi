@@ -13,23 +13,10 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  'https://2884-36-83-213-135.ngrok-free.app', // Ganti sesuai ngrok aktif
+  'https://2884-36-83-213-135.ngrok-free.app', // ← ganti jika ngrok berubah
 ];
 
-// ✅ Preflight CORS handler
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.error('❌ CORS blocked for origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-}));
-
-// ✅ CORS utama
+// ✅ Middleware CORS (gabungan preflight & utama)
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -42,9 +29,9 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ Logger untuk cek origin masuk
+// ✅ Middleware logging
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.path} dari origin: ${req.headers.origin}`);
+  console.log(`📥 ${req.method} ${req.originalUrl} dari origin: ${req.headers.origin}`);
   next();
 });
 
@@ -53,7 +40,7 @@ app.get('/', (req, res) => {
   res.send('✅ Backend Telekonsultasi Aktif');
 });
 
-// ✅ Routes
+// ✅ Import semua routes
 app.use('/api/users', require('./routes/users'));
 app.use('/api/pengguna', require('./routes/pengguna'));
 app.use('/api/faskes', require('./routes/faskes'));
