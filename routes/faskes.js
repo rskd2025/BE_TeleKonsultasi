@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// ✅ Ambil semua data faskes secara lengkap
+// ✅ Ambil semua data faskes secara lengkap (untuk halaman manajemen faskes)
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`
@@ -19,6 +19,19 @@ router.get('/', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mengambil data faskes:', err);
+    res.status(500).json({ error: 'Gagal mengambil data faskes' });
+  }
+});
+
+// ✅ Endpoint untuk dropdown (khusus dipakai di Input Pemeriksaan)
+router.get('/dropdown', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT kode AS value, nama AS label FROM faskes ORDER BY nama ASC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Gagal mengambil data dropdown faskes:', err);
     res.status(500).json({ error: 'Gagal mengambil data faskes' });
   }
 });
