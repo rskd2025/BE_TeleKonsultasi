@@ -2,10 +2,20 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// ✅ Ambil semua data faskes
+// ✅ Ambil semua data faskes secara lengkap
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT id, nama AS nama_faskes FROM faskes ORDER BY nama ASC');
+    const [rows] = await db.query(`
+      SELECT 
+        id, 
+        nama, 
+        kode, 
+        jenis, 
+        kabupaten, 
+        provinsi 
+      FROM faskes 
+      ORDER BY nama ASC
+    `);
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mengambil data faskes:', err);
