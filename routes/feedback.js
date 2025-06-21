@@ -7,29 +7,31 @@ const db = require('../db');
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT 
-        f.id,
-        p.nama_lengkap,
-        TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
-        pr.faskes_asal,
-        f.tujuan_konsul,
-        f.tanggal,
-        pr.diagnosa,
-        pr.anamnesis,
-        f.jawaban_konsul
-      FROM feedback f
-      JOIN pasien p ON f.pasien_id = p.id
-      LEFT JOIN (
-        SELECT a.*
-        FROM pemeriksaan a
-        INNER JOIN (
-          SELECT pasien_id, MAX(tanggal) AS latest
-          FROM pemeriksaan
-          GROUP BY pasien_id
-        ) b ON a.pasien_id = b.pasien_id AND a.tanggal = b.latest
-      ) pr ON pr.pasien_id = f.pasien_id
-      ORDER BY f.tanggal DESC
-    `);
+  SELECT 
+    f.id,
+    p.nama_lengkap,
+    TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
+    fk.nama AS faskes_asal,
+    f.tujuan_konsul,
+    f.tanggal,
+    pr.diagnosa,
+    pr.anamnesis,
+    f.jawaban_konsul
+  FROM feedback f
+  JOIN pasien p ON f.pasien_id = p.id
+  LEFT JOIN (
+    SELECT a.*
+    FROM pemeriksaan a
+    INNER JOIN (
+      SELECT pasien_id, MAX(tanggal) AS latest
+      FROM pemeriksaan
+      GROUP BY pasien_id
+    ) b ON a.pasien_id = b.pasien_id AND a.tanggal = b.latest
+  ) pr ON pr.pasien_id = f.pasien_id
+  LEFT JOIN faskes fk ON pr.faskes_asal = fk.kode
+  ORDER BY f.tanggal DESC
+`);
+
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mengambil data feedback:', err);
