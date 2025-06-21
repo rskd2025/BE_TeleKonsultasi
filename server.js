@@ -1,5 +1,4 @@
-// server.js
-require('dotenv').config(); // ⬅️ Load .env di awal
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
@@ -7,46 +6,38 @@ const app = express();
 
 const port = process.env.PORT || 5000;
 
-// ✅ Daftar asal yang diizinkan untuk CORS
+// ✅ Daftar asal yang diizinkan
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  'https://3954-36-83-213-135.ngrok-free.app', // ganti saat ngrok berubah
+  'https://3954-36-83-213-135.ngrok-free.app', // ganti sesuai ngrok aktif
 ];
 
-if (process.env.NGROK_URL) {
-  allowedOrigins.push(process.env.NGROK_URL);
-}
-
-// ✅ Middleware CORS
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS not allowed for this origin: ' + origin));
-      }
-    },
-    credentials: true,
-  })
-);
+// ✅ Konfigurasi CORS yang fleksibel
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error('❌ CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 
 app.use(express.json());
 
-// ✅ Route test
+// ✅ Tambahkan route test jika perlu
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('Backend Telekonsultasi Aktif');
 });
 
-// ✅ Import semua routes
+// ✅ ROUTES kamu
 app.use('/api/users', require('./routes/users'));
 app.use('/api/pengguna', require('./routes/pengguna'));
-app.use('/api/faskes', require('./routes/faskes'));
-app.use('/api/pemeriksaan', require('./routes/pemeriksaan'));
-app.use('/api/feedback', require('./routes/feedback'));
+// dst...
 
-// ✅ Start server
 app.listen(port, () => {
   console.log(`✅ Server berjalan di http://localhost:${port}`);
 });
