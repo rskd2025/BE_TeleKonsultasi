@@ -1,3 +1,4 @@
+// routes/users.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -41,13 +42,15 @@ router.post('/login', async (req, res) => {
       console.warn('❗ Gagal parsing hak akses:', err);
     }
 
+    const role = groupAkses.includes('Admin') ? 'admin' : 'pengguna';
+
     res.json({
       message: '✅ Login berhasil',
       user: {
         id: user.pengguna_id,
         nama_lengkap: user.nama_lengkap,
         username: user.username,
-        role: user.role,
+        role,
         groupAkses,
         modulAkses,
       },
@@ -79,26 +82,15 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ message: 'Username sudah digunakan' });
     }
 
-    // Simpan ke tabel pengguna
     const [result] = await db.query(
       `INSERT INTO pengguna (nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, username, jenis_pengguna)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        nama_lengkap,
-        nip,
-        tempat_lahir,
-        tanggal_lahir,
-        jenis_kelamin,
-        agama,
-        username,
-        'Eksternal',
-      ]
+      [nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, username, 'Eksternal']
     );
 
     const pengguna_id = result.insertId;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Simpan ke tabel users
     await db.query(
       'INSERT INTO users (username, password, role, pengguna_id) VALUES (?, ?, ?, ?)',
       [username, hashedPassword, 'petugas input', pengguna_id]
