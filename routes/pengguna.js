@@ -145,13 +145,15 @@ router.put('/:id/password', async (req, res) => {
   }
 });
 
-// 🔍 Tambahan: GET pengguna berdasarkan username
+// 🔍 Tambahan: GET pengguna berdasarkan username (JOIN ke users)
 router.get('/by-username/:username', async (req, res) => {
   const { username } = req.params;
 
   try {
     const [results] = await db.query(
-      'SELECT * FROM pengguna WHERE username = ?',
+      `SELECT p.*, u.username, u.role FROM pengguna p
+       JOIN users u ON u.pengguna_id = p.id
+       WHERE u.username = ?`,
       [username]
     );
 
@@ -169,7 +171,10 @@ router.get('/by-username/:username', async (req, res) => {
       jenis_kelamin: pengguna.jenis_kelamin,
       agama: pengguna.agama,
       username: pengguna.username,
-      jenis_pengguna: pengguna.jenis_pengguna,
+      role: pengguna.role,
+      jenis_profesi: pengguna.jenis_profesi,
+      alamat_lengkap: pengguna.alamat_lengkap,
+      status: pengguna.status,
     });
   } catch (err) {
     console.error('❌ Gagal ambil pengguna by username:', err);
