@@ -83,9 +83,9 @@ router.post('/signup', async (req, res) => {
     }
 
     const [result] = await db.query(
-      `INSERT INTO pengguna (nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, username, jenis_pengguna)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, username, 'Eksternal']
+      `INSERT INTO pengguna (nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, jenis_pengguna)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, 'Eksternal']
     );
 
     const pengguna_id = result.insertId;
@@ -172,7 +172,7 @@ router.put('/change-password/:id', async (req, res) => {
 });
 
 // ==========================================
-// ✅ SIMPAN HAK AKSES (modulAkses dan groupAkses)
+// ✅ SIMPAN HAK AKSES (groupAkses dan modulAkses)
 // ==========================================
 router.put('/:id', async (req, res) => {
   const id = req.params.id;
