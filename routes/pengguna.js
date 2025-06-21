@@ -182,4 +182,23 @@ router.get('/by-username/:username', async (req, res) => {
   }
 });
 
+// ✅ Tambahan: Ambil data akun login berdasarkan pengguna_id
+router.get('/:id/akun', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await db.query(
+      'SELECT username, role FROM users WHERE pengguna_id = ?',
+      [id]
+    );
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.json(null); // Tidak ditemukan akun
+    }
+  } catch (err) {
+    console.error('❌ Gagal ambil akun pengguna:', err);
+    res.status(500).json({ error: 'Gagal mengambil akun pengguna' });
+  }
+});
+
 module.exports = router;
