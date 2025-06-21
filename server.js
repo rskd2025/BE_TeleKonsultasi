@@ -8,13 +8,13 @@ const port = process.env.PORT || 5000;
 
 // ✅ Middleware body parser WAJIB
 app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // kalau form-urlencoded
+app.use(express.urlencoded({ extended: true }));
 
 // ✅ Daftar asal yang diizinkan (CORS)
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  'https://3954-36-83-213-135.ngrok-free.app', // ⬅️ Ganti saat ngrok berubah
+  'https://3954-36-83-213-135.ngrok-free.app', // ganti sesuai ngrok aktif
 ];
 
 // ✅ Middleware CORS dinamis
@@ -35,13 +35,15 @@ app.get('/', (req, res) => {
   res.send('✅ Backend Telekonsultasi Aktif');
 });
 
-// ✅ ROUTES
+// ✅ Import semua routes
+const pasienRoutes = require('./routes/pasien'); // ⬅️ Tambahkan ini
+app.use('/api/pasien', pasienRoutes);
+
 app.use('/api/users', require('./routes/users'));
 app.use('/api/pengguna', require('./routes/pengguna'));
 app.use('/api/faskes', require('./routes/faskes'));
 app.use('/api/pemeriksaan', require('./routes/pemeriksaan'));
 app.use('/api/feedback', require('./routes/feedback'));
-app.use('/api/pasien', pasienRoutes);
 
 // ✅ Jalankan server
 app.listen(port, () => {
