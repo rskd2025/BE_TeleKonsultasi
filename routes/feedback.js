@@ -15,18 +15,10 @@ router.get('/', async (req, res) => {
         f.tanggal,
         pr.diagnosa,
         pr.anamnesis,
-        pr.jawaban_konsul
+        f.jawaban AS jawaban_konsul
       FROM feedback f
-      JOIN pasien p ON f.pasien_id = p.id
-      LEFT JOIN (
-        SELECT a.*
-        FROM pemeriksaan a
-        INNER JOIN (
-          SELECT pasien_id, MAX(tanggal) AS latest
-          FROM pemeriksaan
-          GROUP BY pasien_id
-        ) b ON a.pasien_id = b.pasien_id AND a.tanggal = b.latest
-      ) pr ON pr.pasien_id = f.pasien_id
+      JOIN pemeriksaan pr ON f.pemeriksaan_id = pr.id
+      JOIN pasien p ON pr.pasien_id = p.id
       LEFT JOIN faskes fk ON pr.faskes_asal = fk.kode
       ORDER BY f.tanggal DESC
     `);
@@ -37,19 +29,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST feedback baru (tidak menyimpan tujuan_konsul karena bukan kolom feedback)
+// POST feedback baru
 router.post('/', async (req, res) => {
-  const { pasien_id, tanggal, jawaban_konsul } = req.body;
+  const { pemeriksaan_id, user_id, jawaban, tanggal } = req.body;
 
-  if (!pasien_id || !tanggal) {
+  if (!pemeriksaan_id || !jawaban) {
     return res.status(400).json({ error: 'Field wajib tidak boleh kosong' });
   }
 
   try {
     const [result] = await db.query(
-      `INSERT INTO feedback (pasien_id, tanggal, jawaban_konsul)
-       VALUES (?, ?, ?)`,
-      [pasien_id, tanggal, jawaban_konsul || null]
+      `INSERT INTO feedback (pemeriksaan_id, user_id, jawaban, tanggal)
+       VALUES (?, ?, ?, ?)`,
+      [pemeriksaan_id, user_id || null, jawaban, tanggal || new Date()]
     );
     res.status(201).json({ message: '✅ Feedback berhasil ditambahkan', id: result.insertId });
   } catch (err) {
