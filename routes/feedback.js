@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
         f.tanggal,
         pr.diagnosa,
         pr.anamnesis,
-        f.jawaban_konsul
+        pr.jawaban_konsul
       FROM feedback f
       JOIN pasien p ON f.pasien_id = p.id
       LEFT JOIN (
