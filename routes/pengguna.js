@@ -31,7 +31,8 @@ router.get('/', async (req, res) => {
     }));
     res.json(sanitized);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Gagal mengambil data pengguna:', err);
+    res.status(500).json({ error: 'Gagal mengambil data pengguna' });
   }
 });
 
@@ -62,9 +63,10 @@ router.post('/', async (req, res) => {
       ]
     );
 
-    res.status(201).json({ id: result.insertId, message: 'Pengguna berhasil ditambahkan' });
+    res.status(201).json({ id: result.insertId, message: '✅ Pengguna berhasil ditambahkan' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Gagal menambahkan pengguna:', err);
+    res.status(500).json({ error: 'Gagal menambahkan pengguna' });
   }
 });
 
@@ -94,9 +96,10 @@ router.put('/:id', async (req, res) => {
         status, id
       ]
     );
-    res.json({ message: 'Pengguna berhasil diperbarui' });
+    res.json({ message: '✅ Pengguna berhasil diperbarui' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Gagal update pengguna:', err);
+    res.status(500).json({ error: 'Gagal memperbarui pengguna' });
   }
 });
 
@@ -106,9 +109,10 @@ router.delete('/:id', async (req, res) => {
 
   try {
     await db.query('DELETE FROM pengguna WHERE id = ?', [id]);
-    res.json({ message: 'Pengguna berhasil dihapus' });
+    res.json({ message: '✅ Pengguna berhasil dihapus' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Gagal hapus pengguna:', err);
+    res.status(500).json({ error: 'Gagal menghapus pengguna' });
   }
 });
 
@@ -134,8 +138,9 @@ router.put('/:id/password', async (req, res) => {
       [id, username, hashedPassword, role]
     );
 
-    res.json({ message: 'Akun login berhasil diperbarui' });
+    res.json({ message: '✅ Akun login berhasil diperbarui' });
   } catch (err) {
+    console.error('❌ Gagal simpan akun login:', err);
     res.status(500).json({ error: 'Gagal menyimpan akun login' });
   }
 });
