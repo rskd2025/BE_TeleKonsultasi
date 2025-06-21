@@ -41,6 +41,7 @@ app.use('/api/pengguna', require('./routes/pengguna'));
 app.use('/api/faskes', require('./routes/faskes'));
 app.use('/api/pemeriksaan', require('./routes/pemeriksaan'));
 app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/pasien', pasienRoutes);
 
 // ✅ Jalankan server
 app.listen(port, () => {
