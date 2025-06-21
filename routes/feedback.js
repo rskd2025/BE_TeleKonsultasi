@@ -1,37 +1,35 @@
-// routes/feedback.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// ✅ GET semua feedback konsul lengkap
+// GET semua feedback konsul lengkap
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`
-  SELECT 
-    f.id,
-    p.nama_lengkap,
-    TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
-    fk.nama AS faskes_asal,
-    f.tujuan_konsul,
-    f.tanggal,
-    pr.diagnosa,
-    pr.anamnesis,
-    f.jawaban_konsul
-  FROM feedback f
-  JOIN pasien p ON f.pasien_id = p.id
-  LEFT JOIN (
-    SELECT a.*
-    FROM pemeriksaan a
-    INNER JOIN (
-      SELECT pasien_id, MAX(tanggal) AS latest
-      FROM pemeriksaan
-      GROUP BY pasien_id
-    ) b ON a.pasien_id = b.pasien_id AND a.tanggal = b.latest
-  ) pr ON pr.pasien_id = f.pasien_id
-  LEFT JOIN faskes fk ON pr.faskes_asal = fk.kode
-  ORDER BY f.tanggal DESC
-`);
-
+      SELECT 
+        f.id,
+        p.nama_lengkap,
+        TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
+        fk.nama AS faskes_asal,
+        pr.tujuan_konsul,
+        f.tanggal,
+        pr.diagnosa,
+        pr.anamnesis,
+        f.jawaban_konsul
+      FROM feedback f
+      JOIN pasien p ON f.pasien_id = p.id
+      LEFT JOIN (
+        SELECT a.*
+        FROM pemeriksaan a
+        INNER JOIN (
+          SELECT pasien_id, MAX(tanggal) AS latest
+          FROM pemeriksaan
+          GROUP BY pasien_id
+        ) b ON a.pasien_id = b.pasien_id AND a.tanggal = b.latest
+      ) pr ON pr.pasien_id = f.pasien_id
+      LEFT JOIN faskes fk ON pr.faskes_asal = fk.kode
+      ORDER BY f.tanggal DESC
+    `);
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mengambil data feedback:', err);
@@ -39,19 +37,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ POST feedback baru
+// POST feedback baru (tidak menyimpan tujuan_konsul karena bukan kolom feedback)
 router.post('/', async (req, res) => {
-  const { pasien_id, tanggal, tujuan_konsul, jawaban_konsul } = req.body;
+  const { pasien_id, tanggal, jawaban_konsul } = req.body;
 
-  if (!pasien_id || !tanggal || !tujuan_konsul) {
+  if (!pasien_id || !tanggal) {
     return res.status(400).json({ error: 'Field wajib tidak boleh kosong' });
   }
 
   try {
     const [result] = await db.query(
-      `INSERT INTO feedback (pasien_id, tanggal, tujuan_konsul, jawaban_konsul)
-       VALUES (?, ?, ?, ?)`,
-      [pasien_id, tanggal, tujuan_konsul, jawaban_konsul || null]
+      `INSERT INTO feedback (pasien_id, tanggal, jawaban_konsul)
+       VALUES (?, ?, ?)`,
+      [pasien_id, tanggal, jawaban_konsul || null]
     );
     res.status(201).json({ message: '✅ Feedback berhasil ditambahkan', id: result.insertId });
   } catch (err) {
