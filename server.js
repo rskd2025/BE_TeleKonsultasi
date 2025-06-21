@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  'https://7865-36-83-222-191.ngrok-free.app', // Ganti saat ngrok berubah,
+  'https://3954-36-83-213-135.ngrok-free.app', // Ganti saat ngrok berubah,
 ];
 
 // Tambahkan ngrok URL jika tersedia di .env
