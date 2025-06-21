@@ -30,13 +30,17 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// ✅ Tambahan header untuk response (optional tapi aman)
+// ✅ Tambahan header manual agar tidak pernah wildcard (*)
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", "true");
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
   next();
 });
 
-// ✅ Logger (debug)
+// ✅ Logger
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.path} dari ${req.headers.origin}`);
   next();
