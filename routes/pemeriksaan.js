@@ -23,15 +23,7 @@ router.post('/', async (req, res) => {
       `INSERT INTO pemeriksaan (
         pasien_id, faskes_asal, tujuan_konsul, anamnesis, diagnosa, tanggal, status
       ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        pasien_id,
-        faskes_asal,
-        tujuan_konsul,
-        anamnesis || '',
-        diagnosa,
-        tanggal,
-        status,
-      ]
+      [pasien_id, faskes_asal, tujuan_konsul, anamnesis || '', diagnosa, tanggal, status]
     );
 
     res.status(201).json({
@@ -132,6 +124,8 @@ router.get('/kunjungan', async (req, res) => {
       p.tanggal,
       p.faskes_asal,
       p.tujuan_konsul,
+      p.anamnesis,
+      p.diagnosa,
       p.status,
       ps.nama_lengkap,
       ps.jenis_kelamin,
