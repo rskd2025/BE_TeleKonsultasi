@@ -36,8 +36,8 @@ router.post('/login', async (req, res) => {
     let groupAkses = [];
     let modulAkses = [];
     try {
-      groupAkses = JSON.parse(user.groupAkses || '[]');
-      modulAkses = JSON.parse(user.modulAkses || '[]');
+      groupAkses = typeof user.groupAkses === 'string' ? JSON.parse(user.groupAkses) : [];
+      modulAkses = typeof user.modulAkses === 'string' ? JSON.parse(user.modulAkses) : [];
     } catch (err) {
       console.warn('❗ Gagal parsing hak akses:', err);
     }
