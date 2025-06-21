@@ -78,8 +78,8 @@ router.get('/:id', async (req, res) => {
     }
     res.json(rows[0]);
   } catch (err) {
-    console.error('❌ Gagal mengambil data pasien:', err);
-    res.status(500).json({ error: 'Gagal mengambil data pasien' });
+  console.error('❌ Gagal menyimpan pasien:', err.message, err); // Tampilkan pesan asli error
+  res.status(500).json({ error: 'Gagal menyimpan pasien', detail: err.message }); // Kirim juga ke frontend
   }
 });
 
