@@ -3,14 +3,14 @@ const router = express.Router();
 const db = require('../db');
 const bcrypt = require('bcrypt');
 
-// 🔧 Fungsi bantu nama lengkap
+// Fungsi bantu format nama lengkap
 function formatNamaLengkap(gelarDepan, namaDepan, gelarBelakang) {
   const depan = gelarDepan ? `${gelarDepan}. ` : '';
   const belakang = gelarBelakang ? ` ${gelarBelakang}` : '';
   return `${depan}${namaDepan}${belakang}`.trim();
 }
 
-// 🔍 GET semua pengguna
+// GET semua pengguna
 router.get('/', async (req, res) => {
   try {
     const [results] = await db.query('SELECT * FROM pengguna');
@@ -36,7 +36,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ➕ POST tambah pengguna
+// POST tambah pengguna
 router.post('/', async (req, res) => {
   const {
     nip = '', gelar_depan = '', nama_depan = '', gelar_belakang = '',
@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✏️ PUT update pengguna
+// PUT update pengguna
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const {
@@ -103,7 +103,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ❌ DELETE pengguna
+// DELETE pengguna
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -116,7 +116,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// 🔐 PUT atur username, password, dan role pengguna
+// PUT atur username, password, dan role pengguna
 router.put('/:id/password', async (req, res) => {
   const { id } = req.params;
   const { username, password, role } = req.body;
@@ -145,7 +145,24 @@ router.put('/:id/password', async (req, res) => {
   }
 });
 
-// 🔍 Tambahan: GET pengguna berdasarkan username (JOIN ke users)
+// PUT update hak akses (groupAkses dan modulAkses)
+router.put('/:id/akses', async (req, res) => {
+  const id = req.params.id;
+  const { groupAkses, modulAkses } = req.body;
+
+  try {
+    await db.query(
+      'UPDATE users SET groupAkses = ?, modulAkses = ? WHERE pengguna_id = ?',
+      [JSON.stringify(groupAkses || []), JSON.stringify(modulAkses || []), id]
+    );
+    res.json({ message: '✅ Hak akses berhasil diperbarui' });
+  } catch (err) {
+    console.error('❌ Gagal update hak akses:', err);
+    res.status(500).json({ error: 'Gagal menyimpan hak akses' });
+  }
+});
+
+// GET pengguna berdasarkan username (JOIN ke users)
 router.get('/by-username/:username', async (req, res) => {
   const { username } = req.params;
 
@@ -182,7 +199,7 @@ router.get('/by-username/:username', async (req, res) => {
   }
 });
 
-// ✅ Tambahan: Ambil data akun login berdasarkan pengguna_id
+// GET data akun login berdasarkan pengguna_id
 router.get('/:id/akun', async (req, res) => {
   const { id } = req.params;
   try {
@@ -193,7 +210,7 @@ router.get('/:id/akun', async (req, res) => {
     if (rows.length > 0) {
       res.json(rows[0]);
     } else {
-      res.json(null); // Tidak ditemukan akun
+      res.json(null);
     }
   } catch (err) {
     console.error('❌ Gagal ambil akun pengguna:', err);
