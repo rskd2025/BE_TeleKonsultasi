@@ -12,10 +12,10 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  'https://9cdf-36-83-213-135.ngrok-free.app' // ganti sesuai ngrok aktif
+  'https://9cdf-36-83-213-135.ngrok-free.app' // GANTI jika pakai ngrok lain
 ];
 
-// ✅ Konfigurasi CORS final
+// ✅ Konfigurasi CORS yang benar
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -28,15 +28,18 @@ const corsOptions = {
   credentials: true,
 };
 
+// ✅ Terapkan middleware CORS global
 app.use(cors(corsOptions));
 
-// ✅ Tambahan header manual agar tidak pernah wildcard (*)
+// ✅ Tambahan header manual untuk semua response (wajib agar tidak wildcard)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Origin", origin);
   }
-  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next();
 });
 
@@ -51,13 +54,19 @@ app.get('/', (req, res) => {
   res.send('✅ Backend Telekonsultasi Aktif');
 });
 
-// ✅ Semua route
-app.use('/api/users', require('./routes/users'));
-app.use('/api/pengguna', require('./routes/pengguna'));
-app.use('/api/faskes', require('./routes/faskes'));
-app.use('/api/pasien', require('./routes/pasien'));
-app.use('/api/pemeriksaan', require('./routes/pemeriksaan'));
-app.use('/api/feedback', require('./routes/feedback'));
+// ✅ Semua route dengan CORS lagi (ekstra aman di ngrok/Vercel)
+const routes = [
+  ['/api/users', './routes/users'],
+  ['/api/pengguna', './routes/pengguna'],
+  ['/api/faskes', './routes/faskes'],
+  ['/api/pasien', './routes/pasien'],
+  ['/api/pemeriksaan', './routes/pemeriksaan'],
+  ['/api/feedback', './routes/feedback'],
+];
+
+routes.forEach(([path, routePath]) => {
+  app.use(path, cors(corsOptions), require(routePath));
+});
 
 // ✅ Start server
 app.listen(port, () => {
