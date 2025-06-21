@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
         f.id,
         p.nama_lengkap,
         TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
-        fk.nama_faskes AS faskes_asal,
+        pr.faskes_asal,
         f.tujuan_konsul,
         f.tanggal,
         pr.diagnosa,
@@ -19,7 +19,6 @@ router.get('/', async (req, res) => {
         f.jawaban_konsul
       FROM feedback f
       JOIN pasien p ON f.pasien_id = p.id
-      LEFT JOIN faskes fk ON p.faskes_id = fk.id
       LEFT JOIN (
         SELECT a.*
         FROM pemeriksaan a
