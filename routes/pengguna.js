@@ -145,4 +145,36 @@ router.put('/:id/password', async (req, res) => {
   }
 });
 
+// 🔍 Tambahan: GET pengguna berdasarkan username
+router.get('/by-username/:username', async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const [results] = await db.query(
+      'SELECT * FROM pengguna WHERE username = ?',
+      [username]
+    );
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
+    }
+
+    const pengguna = results[0];
+    res.json({
+      id: pengguna.id,
+      nama_lengkap: pengguna.nama_lengkap,
+      nip: pengguna.nip,
+      tempat_lahir: pengguna.tempat_lahir,
+      tanggal_lahir: pengguna.tanggal_lahir ? pengguna.tanggal_lahir.toISOString().split('T')[0] : '',
+      jenis_kelamin: pengguna.jenis_kelamin,
+      agama: pengguna.agama,
+      username: pengguna.username,
+      jenis_pengguna: pengguna.jenis_pengguna,
+    });
+  } catch (err) {
+    console.error('❌ Gagal ambil pengguna by username:', err);
+    res.status(500).json({ error: 'Gagal mengambil data pengguna' });
+  }
+});
+
 module.exports = router;
