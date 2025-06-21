@@ -5,10 +5,11 @@ const db = require('../db');
 // ✅ Ambil semua data faskes
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM faskes ORDER BY nama ASC');
+    const [rows] = await db.query('SELECT id, nama AS nama_faskes FROM faskes ORDER BY nama ASC');
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Gagal mengambil data faskes:', err);
+    res.status(500).json({ error: 'Gagal mengambil data faskes' });
   }
 });
 
@@ -27,8 +28,8 @@ router.post('/', async (req, res) => {
     );
     res.status(201).json({ message: '✅ Faskes berhasil ditambahkan' });
   } catch (err) {
-    console.error('Gagal tambah faskes:', err);
-    res.status(500).json({ error: '❌ Gagal menambahkan faskes' });
+    console.error('❌ Gagal menambahkan faskes:', err);
+    res.status(500).json({ error: 'Gagal menambahkan faskes' });
   }
 });
 
@@ -47,8 +48,8 @@ router.put('/:id', async (req, res) => {
     );
     res.json({ message: '✅ Data faskes berhasil diupdate' });
   } catch (err) {
-    console.error('Gagal update faskes:', err);
-    res.status(500).json({ error: '❌ Gagal update faskes' });
+    console.error('❌ Gagal update faskes:', err);
+    res.status(500).json({ error: 'Gagal update faskes' });
   }
 });
 
@@ -58,8 +59,8 @@ router.delete('/:id', async (req, res) => {
     await db.query('DELETE FROM faskes WHERE id = ?', [req.params.id]);
     res.json({ message: '🗑️ Faskes berhasil dihapus' });
   } catch (err) {
-    console.error('Gagal hapus faskes:', err);
-    res.status(500).json({ error: '❌ Gagal hapus faskes' });
+    console.error('❌ Gagal hapus faskes:', err);
+    res.status(500).json({ error: 'Gagal hapus faskes' });
   }
 });
 
