@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   'http://localhost:3000',
   'https://telekonsultasi.vercel.app',
-  'https://9aee-36-83-213-135.ngrok-free.app', // Ganti sesuai ngrok aktif
+  'https://2884-36-83-213-135.ngrok-free.app', // Ganti sesuai ngrok aktif
 ];
 
 // ✅ Preflight CORS handler
