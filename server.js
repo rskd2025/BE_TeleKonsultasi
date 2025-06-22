@@ -62,6 +62,7 @@ const routes = [
   ['/api/pasien', './routes/pasien'],
   ['/api/pemeriksaan', './routes/pemeriksaan'],
   ['/api/feedback', './routes/feedback'],
+  ['/api/statistik', './routes/statistik']
 ];
 
 routes.forEach(([path, routePath]) => {
