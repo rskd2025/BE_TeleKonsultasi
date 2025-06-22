@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
     res.json({
       message: '✅ Login berhasil',
       user: {
-        id: user.pengguna_id,
+        pengguna_id: user.pengguna_id,
         nama_lengkap: user.nama_lengkap,
         username: user.username,
         role,
@@ -57,48 +57,6 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ message: 'Terjadi kesalahan pada server' });
-  }
-});
-
-// ==========================================
-// ✅ SIGNUP (DARI MODAL FRONTEND)
-// ==========================================
-router.post('/signup', async (req, res) => {
-  const {
-    nama_lengkap,
-    nip,
-    tempat_lahir,
-    tanggal_lahir,
-    jenis_kelamin,
-    agama,
-    username,
-    password,
-  } = req.body;
-
-  try {
-    const [existing] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
-    if (existing.length > 0) {
-      return res.status(400).json({ message: 'Username sudah digunakan' });
-    }
-
-    const [result] = await db.query(
-      `INSERT INTO pengguna (nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, jenis_pengguna)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nama_lengkap, nip, tempat_lahir, tanggal_lahir, jenis_kelamin, agama, 'Eksternal']
-    );
-
-    const pengguna_id = result.insertId;
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await db.query(
-      'INSERT INTO users (username, password, role, pengguna_id) VALUES (?, ?, ?, ?)',
-      [username, hashedPassword, 'petugas input', pengguna_id]
-    );
-
-    res.status(201).json({ message: 'Signup berhasil' });
-  } catch (err) {
-    console.error('Signup error:', err);
     res.status(500).json({ message: 'Terjadi kesalahan pada server' });
   }
 });
