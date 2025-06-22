@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
       console.warn('❗ Gagal parsing hak akses:', err);
     }
 
-    const role = groupAkses.includes('Admin') ? 'admin' : 'pengguna';
+    const role = user.role || 'pengguna';
 
     res.json({
       message: '✅ Login berhasil',
