@@ -2,20 +2,39 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// GET jumlah pasien per bulan
-router.get('/pasien-per-bulan', async (req, res) => {
-  try {
-    const [rows] = await db.query(`
-      SELECT DATE_FORMAT(tanggal, '%Y-%m') AS bulan, COUNT(*) AS jumlah_pasien
-      FROM pemeriksaan
-      GROUP BY bulan
-      ORDER BY bulan
-    `);
-    res.json(rows); // ⬅️ PENTING: Harus kirim JSON meskipun rows = []
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Gagal mengambil data pasien per bulan' });
-  }
+// 🔹 Statistik per hari (misalnya 7 hari terakhir)
+router.get('/perhari', async (req, res) => {
+  const [rows] = await db.query(`
+    SELECT DATE(tanggal) as tanggal, COUNT(*) as total
+    FROM pemeriksaan
+    GROUP BY DATE(tanggal)
+    ORDER BY tanggal DESC
+    LIMIT 7
+  `);
+  res.json(rows);
+});
+
+// 🔹 Statistik per bulan (dalam tahun ini)
+router.get('/perbulan', async (req, res) => {
+  const [rows] = await db.query(`
+    SELECT MONTH(tanggal) as bulan, COUNT(*) as total
+    FROM pemeriksaan
+    WHERE YEAR(tanggal) = YEAR(CURDATE())
+    GROUP BY MONTH(tanggal)
+    ORDER BY bulan
+  `);
+  res.json(rows);
+});
+
+// 🔹 Statistik per tahun
+router.get('/pertahun', async (req, res) => {
+  const [rows] = await db.query(`
+    SELECT YEAR(tanggal) as tahun, COUNT(*) as total
+    FROM pemeriksaan
+    GROUP BY YEAR(tanggal)
+    ORDER BY tahun
+  `);
+  res.json(rows);
 });
 
 module.exports = router;
