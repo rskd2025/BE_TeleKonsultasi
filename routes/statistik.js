@@ -36,4 +36,40 @@ router.get('/perhari', async (req, res) => {
   }
 });
 
+// 🔹 Statistik pasien per bulan
+router.get('/perbulan', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        DATE_FORMAT(tanggal, '%Y-%m') AS bulan, 
+        COUNT(*) AS jumlah 
+      FROM pemeriksaan 
+      GROUP BY bulan 
+      ORDER BY bulan ASC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Gagal ambil statistik bulanan:', err);
+    res.status(500).json({ error: 'Gagal ambil statistik per bulan' });
+  }
+});
+
+// 🔹 Statistik pasien per tahun
+router.get('/pertahun', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        YEAR(tanggal) AS tahun, 
+        COUNT(*) AS jumlah 
+      FROM pemeriksaan 
+      GROUP BY tahun 
+      ORDER BY tahun ASC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Gagal ambil statistik tahunan:', err);
+    res.status(500).json({ error: 'Gagal ambil statistik per tahun' });
+  }
+});
+
 module.exports = router;
