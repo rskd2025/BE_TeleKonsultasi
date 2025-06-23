@@ -80,6 +80,7 @@ router.get('/riwayat', async (req, res) => {
         TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
       FROM pemeriksaan p
       JOIN pasien ps ON p.pasien_id = ps.id
+      LEFT JOIN faskes f ON p.faskes_asal = f.kode
       ORDER BY p.tanggal DESC
     `);
     res.json(rows);
