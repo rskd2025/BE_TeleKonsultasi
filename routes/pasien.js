@@ -1,4 +1,3 @@
-// routes/pasien.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -15,9 +14,7 @@ function generateNoRM() {
 // ✅ GET: Semua data pasien (untuk kunjungan)
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT * FROM pasien ORDER BY id DESC
-    `);
+    const [rows] = await db.query(`SELECT * FROM pasien ORDER BY id DESC`);
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mengambil data pasien:', err);
@@ -78,8 +75,8 @@ router.get('/:id', async (req, res) => {
     }
     res.json(rows[0]);
   } catch (err) {
-  console.error('❌ Gagal menyimpan pasien:', err.message, err); // Tampilkan pesan asli error
-  res.status(500).json({ error: 'Gagal menyimpan pasien', detail: err.message }); // Kirim juga ke frontend
+    console.error('❌ Gagal mengambil detail pasien:', err.message, err);
+    res.status(500).json({ error: 'Gagal mengambil detail pasien', detail: err.message });
   }
 });
 
@@ -88,10 +85,10 @@ router.get('/cari', async (req, res) => {
   const query = req.query.query || '';
   try {
     const [rows] = await db.query(
-      `SELECT id, nama_lengkap, no_rm, jenis_kelamin, tanggal_lahir
+      `SELECT id, nama_lengkap, no_rm, nik, jenis_kelamin, tanggal_lahir
        FROM pasien
        WHERE nama_lengkap LIKE ? OR no_rm LIKE ?
-       ORDER BY nama_lengkap
+       ORDER BY nama_lengkap ASC
        LIMIT 10`,
       [`%${query}%`, `%${query}%`]
     );
