@@ -2,17 +2,22 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// 🔹 Total pasien, faskes, user
+// 🔹 Total pasien, faskes, user + detail pemeriksaan
 router.get('/total', async (req, res) => {
   try {
     const [[{ total_pasien }]] = await db.query('SELECT COUNT(*) AS total_pasien FROM pasien');
     const [[{ total_faskes }]] = await db.query('SELECT COUNT(*) AS total_faskes FROM faskes');
     const [[{ total_user }]] = await db.query('SELECT COUNT(*) AS total_user FROM pengguna');
+    const [[{ sudah_diperiksa }]] = await db.query('SELECT COUNT(DISTINCT pasien_id) AS sudah_diperiksa FROM pemeriksaan');
+
+    const belum_diperiksa = total_pasien - sudah_diperiksa;
 
     res.json({
       pasien: total_pasien,
       faskes: total_faskes,
       user: total_user,
+      sudahDiperiksa: sudah_diperiksa,
+      belumDiperiksa: belum_diperiksa
     });
   } catch (err) {
     console.error('❌ Gagal ambil total statistik:', err);
