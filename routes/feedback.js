@@ -2,16 +2,16 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// GET semua feedback konsul lengkap
+// ✅ GET semua feedback konsul lengkap
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT 
-        f.id,
+        fb.id,
         fb.tanggal AS tanggal_feedback,
-        p.tanggal AS tanggal_kunjungan,
+        pr.tanggal AS tanggal_kunjungan,
         p.nama_lengkap,
-        ps.jenis_kelamin,
+        p.jenis_kelamin,
         TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
         fk.nama AS faskes_asal,
         pr.tujuan_konsul,
@@ -21,8 +21,8 @@ router.get('/', async (req, res) => {
       FROM feedback fb
       JOIN pemeriksaan pr ON fb.pemeriksaan_id = pr.id
       JOIN pasien p ON pr.pasien_id = p.id
-      LEFT JOIN faskes fk ON pr.faskes_asal = fk.nama
-      ORDER BY f.tanggal DESC
+      LEFT JOIN faskes fk ON pr.faskes_asal = fk.kode
+      ORDER BY fb.tanggal DESC
     `);
     res.json(rows);
   } catch (err) {
@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST feedback baru
+// ✅ POST feedback baru
 router.post('/', async (req, res) => {
   const { pemeriksaan_id, user_id, jawaban, tanggal } = req.body;
 
