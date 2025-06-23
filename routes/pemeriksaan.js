@@ -115,7 +115,7 @@ router.get('/riwayat/:pasienId', async (req, res) => {
   }
 });
 
-// ✅ GET: Daftar kunjungan (status = 'menunggu'), disaring berdasarkan role
+// ✅ GET: Daftar kunjungan (status = 'menunggu' atau 'diterima')
 router.get('/kunjungan', async (req, res) => {
   const role = req.query.role?.toLowerCase();
 
@@ -134,7 +134,7 @@ router.get('/kunjungan', async (req, res) => {
       TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
     FROM pemeriksaan p
     JOIN pasien ps ON p.pasien_id = ps.id
-    WHERE p.status = 'menunggu'
+    WHERE p.status IN ('menunggu', 'diterima')
   `;
 
   const params = [];
@@ -173,17 +173,20 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
-// ✅ PUT: Terima pemeriksaan dan simpan jawaban konsul
+// ✅ PUT: Terima pemeriksaan dan simpan jawaban konsul (status otomatis)
 router.put('/:id/terima', async (req, res) => {
   const { id } = req.params;
   const { jawaban_konsul } = req.body;
 
   try {
+    const statusBaru = jawaban_konsul && jawaban_konsul.trim() !== '' ? 'selesai' : 'diterima';
+
     await db.query(
-      `UPDATE pemeriksaan SET status = 'diterima', jawaban_konsul = ? WHERE id = ?`,
-      [jawaban_konsul, id]
+      `UPDATE pemeriksaan SET status = ?, jawaban_konsul = ? WHERE id = ?`,
+      [statusBaru, jawaban_konsul, id]
     );
-    res.json({ message: '✅ Pasien diterima dan jawaban konsul disimpan' });
+
+    res.json({ message: `✅ Pasien diterima dan status: ${statusBaru}` });
   } catch (err) {
     console.error('❌ Gagal menerima pasien:', err);
     res.status(500).json({ error: 'Gagal memproses permintaan' });
