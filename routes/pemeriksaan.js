@@ -71,6 +71,7 @@ router.get('/riwayat', async (req, res) => {
         p.anamnesis,
         p.diagnosa,
         p.faskes_asal,
+        f.nama AS nama_faskes,
         p.tujuan_konsul,
         p.status,
         p.jawaban_konsul,
