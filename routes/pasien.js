@@ -80,23 +80,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ GET: Cari pasien berdasarkan nama atau no_rm
+// ✅ GET: Cari pasien berdasarkan nama_lengkap atau no_rm (tanpa case sensitive)
 router.get('/cari', async (req, res) => {
   const query = req.query.query || '';
+
   try {
     const [rows] = await db.query(
       `SELECT id, nama_lengkap, no_rm, nik, jenis_kelamin, tanggal_lahir
        FROM pasien
-       WHERE nama_lengkap LIKE ? OR no_rm LIKE ?
-       ORDER BY nama_lengkap ASC
+       WHERE LOWER(nama_lengkap) LIKE LOWER(?) OR LOWER(no_rm) LIKE LOWER(?)
+       ORDER BY nama_lengkap
        LIMIT 10`,
       [`%${query}%`, `%${query}%`]
     );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Pasien tidak ditemukan' });
+    }
+
     res.json(rows);
   } catch (err) {
     console.error('❌ Gagal mencari pasien:', err);
     res.status(500).json({ error: 'Gagal mencari pasien' });
   }
 });
+
 
 module.exports = router;
