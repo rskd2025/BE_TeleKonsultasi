@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
         fb.tanggal AS tanggal_feedback,
         pr.tanggal AS tanggal_kunjungan,
         p.nama_lengkap,
+        p.no_rm,
         p.jenis_kelamin,
         TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
         fk.nama AS faskes_asal,
