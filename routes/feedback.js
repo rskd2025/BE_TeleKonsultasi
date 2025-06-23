@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
       FROM feedback fb
       JOIN pemeriksaan pr ON fb.pemeriksaan_id = pr.id
       JOIN pasien p ON pr.pasien_id = p.id
-      LEFT JOIN faskes fk ON pr.faskes_asal = fk.nama
+      LEFT JOIN faskes fk ON pr.faskes_asal = fk.kode OR pr.faskes_asal = fk.nama
       ORDER BY fb.tanggal DESC
     `);
     res.json(rows);
