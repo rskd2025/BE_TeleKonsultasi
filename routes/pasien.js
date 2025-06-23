@@ -65,22 +65,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ GET: Detail pasien berdasarkan ID
-router.get('/:id', async (req, res) => {
-  const id = req.params.id;
-  try {
-    const [rows] = await db.query(`SELECT * FROM pasien WHERE id = ?`, [id]);
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Pasien tidak ditemukan' });
-    }
-    res.json(rows[0]);
-  } catch (err) {
-    console.error('❌ Gagal mengambil detail pasien:', err.message, err);
-    res.status(500).json({ error: 'Gagal mengambil detail pasien', detail: err.message });
-  }
-});
-
-// 🔍 GET: Cari pasien berdasarkan nama/no_rm
+// 🔍 GET: Cari pasien berdasarkan nama atau no_rm
 router.get('/cari', async (req, res) => {
   const query = req.query.query || '';
 
@@ -115,8 +100,8 @@ router.get('/:id', async (req, res) => {
     }
     res.json(rows[0]);
   } catch (err) {
-    console.error('❌ Gagal menyimpan pasien:', err.message, err);
-    res.status(500).json({ error: 'Gagal menyimpan pasien', detail: err.message });
+    console.error('❌ Gagal mengambil detail pasien:', err.message, err);
+    res.status(500).json({ error: 'Gagal mengambil detail pasien', detail: err.message });
   }
 });
 
