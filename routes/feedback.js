@@ -8,16 +8,18 @@ router.get('/', async (req, res) => {
     const [rows] = await db.query(`
       SELECT 
         f.id,
+        fb.tanggal AS tanggal_feedback,
+        p.tanggal AS tanggal_kunjungan,
         p.nama_lengkap,
+        ps.jenis_kelamin,
         TIMESTAMPDIFF(YEAR, p.tanggal_lahir, CURDATE()) AS umur,
         fk.nama AS faskes_asal,
         pr.tujuan_konsul,
-        f.tanggal,
         pr.diagnosa,
         pr.anamnesis,
-        f.jawaban AS jawaban_konsul
-      FROM feedback f
-      JOIN pemeriksaan pr ON f.pemeriksaan_id = pr.id
+        fb.jawaban AS jawaban_konsul
+      FROM feedback fb
+      JOIN pemeriksaan pr ON fb.pemeriksaan_id = pr.id
       JOIN pasien p ON pr.pasien_id = p.id
       LEFT JOIN faskes fk ON pr.faskes_asal = fk.nama
       ORDER BY f.tanggal DESC
