@@ -2,11 +2,54 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// ✅ Ambil semua data pemeriksaan
+// ✅ POST: Tambah data pemeriksaan
+router.post('/', async (req, res) => {
+  const {
+    pasien_id,
+    faskes_asal,
+    tujuan_konsul,
+    anamnesis,
+    diagnosa,
+    tanggal,
+    status = 'menunggu',
+  } = req.body;
+
+  if (!pasien_id || !faskes_asal || !tujuan_konsul || !diagnosa || !tanggal) {
+    return res.status(400).json({ error: 'Data pemeriksaan tidak lengkap' });
+  }
+
+  try {
+    const [result] = await db.query(
+      `INSERT INTO pemeriksaan (
+        pasien_id, faskes_asal, tujuan_konsul, anamnesis, diagnosa, tanggal, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [pasien_id, faskes_asal, tujuan_konsul, anamnesis || '', diagnosa, tanggal, status]
+    );
+
+    res.status(201).json({
+      message: '✅ Pemeriksaan berhasil ditambahkan',
+      id: result.insertId,
+    });
+  } catch (err) {
+    console.error('❌ Gagal menyimpan pemeriksaan:', err);
+    res.status(500).json({ error: 'Gagal menyimpan pemeriksaan' });
+  }
+});
+
+// ✅ GET: Semua pemeriksaan (dashboard)
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT p.id, p.pasien_id, ps.nama, p.diagnosa, p.anamnesis, p.faskes_asal, p.tujuan_konsul, p.tanggal, p.status, p.jawaban_konsul
+      SELECT 
+        p.id,
+        p.tanggal,
+        p.diagnosa,
+        p.faskes_asal,
+        p.tujuan_konsul,
+        p.status,
+        ps.nama_lengkap,
+        ps.jenis_kelamin,
+        TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
       FROM pemeriksaan p
       JOIN pasien ps ON p.pasien_id = ps.id
       ORDER BY p.tanggal DESC
@@ -18,57 +61,135 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ Tambah data pemeriksaan baru
-router.post('/', async (req, res) => {
+// ✅ GET: Riwayat semua pemeriksaan (halaman history)
+router.get('/riwayat', async (req, res) => {
   try {
-    const { pasien_id, diagnosa, anamnesis, faskes_asal, tujuan_konsul, tanggal, status, jawaban_konsul } = req.body;
-    const [result] = await db.query(
-      `INSERT INTO pemeriksaan (pasien_id, diagnosa, anamnesis, faskes_asal, tujuan_konsul, tanggal, status, jawaban_konsul)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [pasien_id, diagnosa, anamnesis, faskes_asal, tujuan_konsul, tanggal, status, jawaban_konsul]
-    );
-    res.json({ message: 'Pemeriksaan berhasil ditambahkan', id: result.insertId });
+    const [rows] = await db.query(`
+      SELECT 
+        p.id,
+        p.tanggal,
+        p.anamnesis,
+        p.diagnosa,
+        p.faskes_asal,
+        f.nama AS nama_faskes,
+        p.tujuan_konsul,
+        p.status,
+        p.jawaban_konsul,
+        ps.nama_lengkap,
+        ps.jenis_kelamin,
+        TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
+      FROM pemeriksaan p
+      JOIN pasien ps ON p.pasien_id = ps.id
+      LEFT JOIN faskes f ON p.faskes_asal = f.kode
+      ORDER BY p.tanggal DESC
+    `);
+    res.json(rows);
   } catch (err) {
-    console.error('❌ Gagal menambahkan pemeriksaan:', err);
-    res.status(500).json({ error: 'Gagal menambahkan pemeriksaan' });
+    console.error('❌ Gagal mengambil riwayat pemeriksaan:', err);
+    res.status(500).json({ error: 'Gagal mengambil riwayat pemeriksaan' });
   }
 });
 
-// ✅ Ambil data pemeriksaan berdasarkan ID
-router.get('/:id', async (req, res) => {
+// ✅ GET: Riwayat pemeriksaan per pasien
+router.get('/riwayat/:pasienId', async (req, res) => {
+  const { pasienId } = req.params;
   try {
-    const [rows] = await db.query('SELECT * FROM pemeriksaan WHERE id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ error: 'Pemeriksaan tidak ditemukan' });
-    res.json(rows[0]);
+    const [rows] = await db.query(`
+      SELECT 
+        p.id,
+        p.tanggal,
+        p.anamnesis,
+        p.diagnosa,
+        p.faskes_asal,
+        p.tujuan_konsul,
+        p.status,
+        p.jawaban_konsul
+      FROM pemeriksaan p
+      WHERE p.pasien_id = ?
+      ORDER BY p.tanggal DESC
+    `, [pasienId]);
+    res.json(rows);
   } catch (err) {
-    console.error('❌ Gagal mengambil pemeriksaan:', err);
-    res.status(500).json({ error: 'Gagal mengambil pemeriksaan' });
+    console.error('❌ Gagal mengambil riwayat pemeriksaan pasien:', err);
+    res.status(500).json({ error: 'Gagal mengambil riwayat pasien' });
   }
 });
 
-// ✅ Update data pemeriksaan berdasarkan ID
-router.put('/:id', async (req, res) => {
+// ✅ GET: Daftar kunjungan (status = 'menunggu' atau 'diterima')
+router.get('/kunjungan', async (req, res) => {
+  const role = req.query.role?.toLowerCase();
+
+  let query = `
+    SELECT 
+      p.id,
+      p.pasien_id,
+      p.tanggal,
+      p.faskes_asal,
+      p.tujuan_konsul,
+      p.anamnesis,
+      p.diagnosa,
+      p.status,
+      ps.nama_lengkap,
+      ps.jenis_kelamin,
+      TIMESTAMPDIFF(YEAR, ps.tanggal_lahir, CURDATE()) AS umur
+    FROM pemeriksaan p
+    JOIN pasien ps ON p.pasien_id = ps.id
+    WHERE p.status IN ('menunggu', 'diterima')
+  `;
+
+  const params = [];
+
+  if (role && !['admin', 'superadmin', 'administrator'].includes(role)) {
+    query += ' AND LOWER(p.tujuan_konsul) = ?';
+    params.push(role);
+  }
+
+  query += ' ORDER BY p.tanggal ASC';
+
   try {
-    const { diagnosa, anamnesis, faskes_asal, tujuan_konsul, tanggal, status, jawaban_konsul } = req.body;
+    const [rows] = await db.query(query, params);
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Gagal mengambil data kunjungan:', err);
+    res.status(500).json({ error: 'Gagal mengambil data kunjungan' });
+  }
+});
+
+// ✅ PUT: Update status pemeriksaan (batal / selesai)
+router.put('/:id/status', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!['menunggu', 'batal', 'selesai'].includes(status)) {
+    return res.status(400).json({ error: 'Status tidak valid' });
+  }
+
+  try {
+    await db.query(`UPDATE pemeriksaan SET status = ? WHERE id = ?`, [status, id]);
+    res.json({ message: '✅ Status berhasil diperbarui' });
+  } catch (err) {
+    console.error('❌ Gagal memperbarui status:', err);
+    res.status(500).json({ error: 'Gagal memperbarui status' });
+  }
+});
+
+// ✅ PUT: Terima pemeriksaan dan simpan jawaban konsul (status otomatis)
+router.put('/:id/terima', async (req, res) => {
+  const { id } = req.params;
+  const { jawaban_konsul } = req.body;
+
+  try {
+    const statusBaru = jawaban_konsul && jawaban_konsul.trim() !== '' ? 'selesai' : 'diterima';
+
     await db.query(
-      `UPDATE pemeriksaan SET diagnosa = ?, anamnesis = ?, faskes_asal = ?, tujuan_konsul = ?, tanggal = ?, status = ?, jawaban_konsul = ? WHERE id = ?`,
-      [diagnosa, anamnesis, faskes_asal, tujuan_konsul, tanggal, status, jawaban_konsul, req.params.id]
+      `UPDATE pemeriksaan SET status = ?, jawaban_konsul = ? WHERE id = ?`,
+      [statusBaru, jawaban_konsul, id]
     );
-    res.json({ message: 'Pemeriksaan berhasil diperbarui' });
-  } catch (err) {
-    console.error('❌ Gagal memperbarui pemeriksaan:', err);
-    res.status(500).json({ error: 'Gagal memperbarui pemeriksaan' });
-  }
-});
 
-// ✅ Hapus data pemeriksaan berdasarkan ID
-router.delete('/:id', async (req, res) => {
-  try {
-    await db.query('DELETE FROM pemeriksaan WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Pemeriksaan berhasil dihapus' });
+    res.json({ message: `✅ Pasien diterima dan status: ${statusBaru}` });
   } catch (err) {
-    console.error('❌ Gagal menghapus pemeriksaan:', err);
-    res.status(500).json({ error: 'Gagal menghapus pemeriksaan' });
+    console.error('❌ Gagal menerima pasien:', err);
+    res.status(500).json({ error: 'Gagal memproses permintaan' });
   }
 });
 
