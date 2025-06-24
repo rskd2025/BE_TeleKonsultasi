@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// 🔹 Total pasien, faskes, user (untuk kotak info statistik umum)
+// 🔹 Total pasien, faskes, user
 router.get('/total', async (req, res) => {
   try {
     const [[{ total_pasien }]] = await db.query('SELECT COUNT(*) AS total_pasien FROM pasien');
@@ -12,30 +12,11 @@ router.get('/total', async (req, res) => {
     res.json({
       pasien: total_pasien,
       faskes: total_faskes,
-      user: total_user
+      user: total_user,
     });
   } catch (err) {
     console.error('❌ Gagal ambil total statistik:', err);
     res.status(500).json({ error: 'Gagal ambil statistik' });
-  }
-});
-
-// 🔹 Pemeriksaan (untuk dashboard)
-router.get('/pemeriksaan', async (req, res) => {
-  try {
-    const [[{ total_pasien }]] = await db.query('SELECT COUNT(*) AS total_pasien FROM pasien');
-    const [[{ sudah_diperiksa }]] = await db.query('SELECT COUNT(DISTINCT pasien_id) AS sudah_diperiksa FROM pemeriksaan');
-
-    const belum_diperiksa = total_pasien - sudah_diperiksa;
-
-    res.json({
-      total_pasien,
-      sudah_diperiksa,
-      belum_diperiksa
-    });
-  } catch (err) {
-    console.error('❌ Gagal ambil data pemeriksaan:', err);
-    res.status(500).json({ error: 'Gagal ambil data pemeriksaan' });
   }
 });
 
