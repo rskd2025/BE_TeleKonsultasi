@@ -70,7 +70,9 @@ router.get('/pertahun', async (req, res) => {
     console.error('❌ Gagal ambil statistik tahunan:', err);
     res.status(500).json({ error: 'Gagal ambil statistik per tahun' });
   }
-  // 🔹 Statistik jumlah pasien periksa & belum
+});
+
+// ✅ Tambahkan route ini di luar blok lain
 router.get('/pemeriksaan', async (req, res) => {
   try {
     const [[{ total_pasien }]] = await db.query('SELECT COUNT(*) AS total_pasien FROM pasien');
@@ -86,8 +88,6 @@ router.get('/pemeriksaan', async (req, res) => {
     console.error('❌ Gagal ambil data pemeriksaan:', err);
     res.status(500).json({ error: 'Gagal ambil data pemeriksaan' });
   }
-});
-
 });
 
 module.exports = router;
